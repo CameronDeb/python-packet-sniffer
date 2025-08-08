@@ -4,7 +4,6 @@ import textwrap
 import platform
 import sys
 
-# --- Helper Functions ---
 
 def format_mac_address(mac_bytes):
     """Formats MAC address bytes (e.g., b'\x01\x02\x03\x04\x05\x06')
@@ -17,17 +16,12 @@ def ipv4_addr_to_str(addr_bytes):
 
 def unpack_ethernet_frame(data):
     """Unpacks the Ethernet header (first 14 bytes)."""
-    # Destination MAC, Source MAC, EtherType (Protocol)
-    # Format: ! = network byte order, 6s = 6 bytes string, H = unsigned short (2 bytes)
     dest_mac, src_mac, proto = struct.unpack('! 6s 6s H', data[:14])
     return format_mac_address(dest_mac), format_mac_address(src_mac), socket.htons(proto), data[14:]
 
 def unpack_ipv4_packet(data):
     """Unpacks the IPv4 header (first 20 bytes of the IP payload)."""
-    # Version & Header Length, Type of Service, Total Length
-    # Identification, Flags & Fragment Offset
-    # Time to Live (TTL), Protocol, Header Checksum
-    # Source IP, Destination IP
+   
     version_header_length = data[0]
     version = version_header_length >> 4 # Shift right by 4 bits to get version
     header_length = (version_header_length & 15) * 4 # Mask with 0xF (15) and multiply by 4 for bytes
@@ -42,11 +36,9 @@ def unpack_ipv4_packet(data):
 
     return version, header_length, ttl, proto, ipv4_addr_to_str(src), ipv4_addr_to_str(target), data[header_length:]
 
-# --- Main Sniffing Logic ---
 
 def main():
     """Main function to capture and process packets."""
-    # Check for root/admin privileges (basic check)
     try:
         # On POSIX (Linux/macOS), check effective user ID. 0 is root.
         # On Windows, attempting to create a raw socket will fail without admin,
@@ -61,9 +53,6 @@ def main():
          pass # Continue, socket creation will likely fail if not admin
 
 
-    # Create a raw socket
-    # socket.AF_PACKET for Linux/macOS to capture Ethernet frames
-    # socket.AF_INET for Windows (captures IP packets, not raw Ethernet)
     conn = None
     try:
         if platform.system() == "Windows":
@@ -130,7 +119,6 @@ def main():
                 else:
                     print(f"  - Non-IPv4 Packet (EtherType: {eth_proto})")
 
-            # Add parsing for TCP/UDP/ICMP headers here if desired for more detail
 
 
     except KeyboardInterrupt:
@@ -149,7 +137,6 @@ def main():
             conn.close()
 
 
-# --- Entry Point ---
 if __name__ == "__main__":
     # Need to import os for privilege check on Linux/macOS
     import os
